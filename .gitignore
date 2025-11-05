@@ -7,11 +7,11 @@
 *.lo
 *.o
 *.obj
-
+/bin
 # Precompiled Headers
 *.gch
 *.pch
-
+leaderboard.txt
 # Linker files
 *.ilk
 
