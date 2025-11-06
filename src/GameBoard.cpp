@@ -423,6 +423,7 @@ void GameBoard::show_game_over_screen(const string& name) {
             score_ = 0;
             snake_.reset(play_rows_ / 2, play_cols_ / 2);
             food_.spawn(play_rows_, play_cols_, snake_);
+            play_game();
             return;
         } else if (ch == 'm' || ch == 'M') { delwin(win); return; }
         else if (ch == 'q' || ch == 'Q') { delwin(win); shutdown_ncurses(); exit(0); }
