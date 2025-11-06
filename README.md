@@ -29,7 +29,6 @@ SnakeTerra is a lightweight terminal/console C++ implementation of the classic S
 
 - As a new user, I want to enter my name so that my results appear on the leaderboards.
 - As a user, I want to start the game so that I can play.
-- As a user, I want to pause and re-start the game so I can take breaks.
 - As a user, I want to change difficulty so I can train or show off my skills.
 - As a user, I want to view leaderboards to see current top players.
   - As a user, I want to filter leaderboards by difficulty so I know who is best at which level.
@@ -64,16 +63,17 @@ cd SnakeTerra
 
 ### Build (compile)
 
-Check if there is a Makefile or build instructions in the repo root. If a Makefile exists, the simplest approach is:
+To build the project, 
+the simplest approach is:
 
 ```bash
 make
 ```
 
-If no Makefile exists, you can compile with a generic g++ command. Replace `src/*.cpp` with the actual source files or the main source file if the layout differs:
+If no Makefile exists, you can compile with a generic g++ command.
 
 ```bash
-g++ -std=c++17 -O2 -Wall -o SnakeTerra src/*.cpp -lncurses
+g++ -std=c++17 -O2 -Iinclude src/main.cpp src/Snake.cpp src/Food.cpp src/Leaderboard.cpp src/GameBoard.cpp -o snake.out -lncurses
 ```
 
 Notes:
@@ -81,18 +81,12 @@ Notes:
 - If the project uses an `include/` directory, add `-I include`.
 - For multi-file projects you may need to list files explicitly or use a provided build script.
 
-If you prefer to build with clang:
-
-```bash
-clang++ -std=c++17 -O2 -Wall -o SnakeTerra src/*.cpp -lncurses
-```
-
 ### Run
 
 After building, run the binary from the project root or the output directory:
 
 ```bash
-./SnakeTerra
+./Snake.out
 ```
 
 If the executable is placed in `bin/`:
