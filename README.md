@@ -109,7 +109,6 @@ If the executable is placed in `bin/`:
 - Choose difficulty from the menu (if provided) or pass an argument (if supported).
 - Controls (typical):
   - Arrow keys or WASD to move the snake
-  - P to pause/resume
   - Q to quit (or Esc)
 - If your terminal does not respond to arrow keys, try using WASD or run in a compatible terminal emulator.
 
