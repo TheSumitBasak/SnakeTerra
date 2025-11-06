@@ -86,13 +86,13 @@ Notes:
 After building, run the binary from the project root or the output directory:
 
 ```bash
-./Snake.out
+./snake.out
 ```
 
 If the executable is placed in `bin/`:
 
 ```bash
-./bin/SnakeTerra
+./bin/snake.out
 ```
 
 ---
