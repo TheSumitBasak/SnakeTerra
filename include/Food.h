@@ -13,7 +13,7 @@ class Food {
 public:
     Food();
     Point pos() const;
-    void spawn(int rows, int cols, const Snake& snake);
+    void spawn(int rows, int cols, const Snake& snake1, const Snake& snake2);
 
 private:
     Point pos_;

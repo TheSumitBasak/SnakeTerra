@@ -53,12 +53,15 @@ private:
     int rows_;
     int cols_;
     Snake snake_;
+    Snake snake2_;
     Food food_;
     int score_;
+    int score2_;
     bool running_;
     int cell_w_;
     Leaderboard leaderboard_;
     Difficulty difficulty_;
+    string lost_announcement_;
 
     int play_rows_;
     int play_cols_;
