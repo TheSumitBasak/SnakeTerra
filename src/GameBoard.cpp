@@ -17,6 +17,9 @@ GameBoard::GameBoard(int rows, int cols)
       snake_(),
       food_(),
       score_(0),
+      snake2_(),
+      score2_(0),
+      loser_(0),
       running_(false),
       cell_w_(2), // keep cell width fixed
       leaderboard_("leaderboard.txt"),
@@ -263,8 +266,9 @@ void GameBoard::play_game() {
     play_cols_ = cols_;
     play_rows_ = rows_;
 
-    snake_.reset(play_rows_ / 2, play_cols_ / 2);
-    food_.spawn(play_rows_, play_cols_, snake_);
+    snake_.reset(play_rows_ / 2, play_cols_ / 4);
+    snake2_.reset(play_rows_ / 2, (play_cols_ * 3) / 4);
+    food_.spawn(rows_, cols_, snake_, snake2_);
     running_ = true;
 
     auto last_tick = chrono::steady_clock::now();
@@ -305,6 +309,20 @@ void GameBoard::play_game() {
             }
             wattroff(left_win, COLOR_PAIR(1));
         }
+        for (const auto& seg : snake2_.body()) {
+            if (seg.r < 0 || seg.r >= play_rows_) continue;
+            if (seg.c < 0 || seg.c >= play_cols_) continue;
+
+            wattron(left_win, COLOR_PAIR(1));
+
+            if (used_cell_w == 1) {
+                mvwaddch(left_win, 1 + seg.r, 1 + seg.c * used_cell_w, ' ' | A_REVERSE);
+            } else {
+                mvwaddstr(left_win, 1 + seg.r, 1 + seg.c * used_cell_w, "  ");
+            }
+
+            wattroff(left_win, COLOR_PAIR(1));
+        }
         wrefresh(left_win);
 
         werase(right_win);
@@ -315,9 +333,9 @@ void GameBoard::play_game() {
         box(right_score, 0, 0);
         mvwprintw(right_score, 0, 2, " Current ");
         wattron(right_score, COLOR_PAIR(4));
-        mvwprintw(right_score, 1, 2, "Score: %d", score_);
-        mvwprintw(right_score, 2, 2, "Difficulty: %s", difficulty_str().c_str());
-        mvwprintw(right_score, 3, 2, "Length: %zu", snake_.body().size());
+        mvwprintw(right_score, 1, 2, "Player 1 Score: %d", score_);
+        mvwprintw(right_score, 2, 2, "Player 2 Score: %d", score2_);
+        mvwprintw(right_score, 3, 2, "Difficulty: %s", difficulty_str().c_str());
         wattroff(right_score, COLOR_PAIR(4));
         wrefresh(right_score);
 
@@ -352,22 +370,111 @@ void GameBoard::play_game() {
 
 void GameBoard::step() {
     snake_.move();
-    Point h = snake_.head();
-    if (h.r < 0 || h.r >= play_rows_ || h.c < 0 || h.c >= play_cols_) { running_ = false; return; }
-    if (snake_.collides_with_self()) { running_ = false; return; }
-    if (h == food_.pos()) {
-        score_ += 1;
+    snake2_.move();
+
+    Point h1 = snake_.head();
+    Point h2 = snake2_.head();
+
+    // Player 1 hits wall
+    if (h1.r < 0 || h1.r >= play_rows_ ||
+        h1.c < 0 || h1.c >= play_cols_) {
+        loser_ = 1;
+        running_ = false;
+        return;
+    }
+
+    // Player 2 hits wall
+    if (h2.r < 0 || h2.r >= play_rows_ ||
+        h2.c < 0 || h2.c >= play_cols_) {
+        loser_ = 2;
+        running_ = false;
+        return;
+    }
+
+    // Player 1 hits itself
+    if (snake_.collides_with_self()) {
+        loser_ = 1;
+        running_ = false;
+        return;
+    }
+
+    // Player 2 hits itself
+    if (snake2_.collides_with_self()) {
+        loser_ = 2;
+        running_ = false;
+        return;
+    }
+
+    // Player 1 hits Player 2
+    for (const auto& seg : snake2_.body()) {
+        if (h1 == seg) {
+            loser_ = 1;
+            running_ = false;
+            return;
+        }
+    }
+
+    // Player 2 hits Player 1
+    for (const auto& seg : snake_.body()) {
+        if (h2 == seg) {
+            loser_ = 2;
+            running_ = false;
+            return;
+        }
+    }
+
+    // Player 1 eats fruit
+    if (h1 == food_.pos()) {
+        score_++;
         snake_.grow();
-        food_.spawn(play_rows_, play_cols_, snake_);
+        food_.spawn(rows_, cols_, snake_, snake2_);
+    }
+
+    // Player 2 eats fruit
+    else if (h2 == food_.pos()) {
+        score2_++;
+        snake2_.grow();
+        food_.spawn(rows_, cols_, snake_, snake2_);
     }
 }
 
 void GameBoard::handle_input(int ch) {
     switch (ch) {
-        case KEY_UP: case 'w': case 'W': snake_.set_dir(Dir::UP); break;
-        case KEY_DOWN: case 's': case 'S': snake_.set_dir(Dir::DOWN); break;
-        case KEY_LEFT: case 'a': case 'A': snake_.set_dir(Dir::LEFT); break;
-        case KEY_RIGHT: case 'd': case 'D': snake_.set_dir(Dir::RIGHT); break;
+        case KEY_UP:
+            snake_.set_dir(Dir::UP);
+            break;
+
+        case KEY_DOWN:
+            snake_.set_dir(Dir::DOWN);
+            break;
+
+        case KEY_LEFT:
+            snake_.set_dir(Dir::LEFT);
+            break;
+
+        case KEY_RIGHT:
+            snake_.set_dir(Dir::RIGHT);
+            break;
+
+        case 'w':
+        case 'W':
+            snake2_.set_dir(Dir::UP);
+            break;
+
+        case 's':
+        case 'S':
+            snake2_.set_dir(Dir::DOWN);
+            break;
+
+        case 'a':
+        case 'A':
+            snake2_.set_dir(Dir::LEFT);
+            break;
+
+        case 'd':
+        case 'D':
+            snake2_.set_dir(Dir::RIGHT);
+            break;
         case 'p': case 'P': {
             nodelay(stdscr, FALSE);
             mvprintw(0, 2, "PAUSED - press any key to continue");
@@ -387,7 +494,15 @@ string GameBoard::prompt_name_and_save() {
     int wx = max(2, (COLS - 60) / 2);
     WINDOW* w = newwin(6, 60, wy, wx);
     box(w, 0, 0);
-    mvwprintw(w, 1, 2, "Game Over! Your score: %d", score_);
+    mvwprintw(win, 1, 2, "Game Over!");
+
+    if (loser_ == 1)
+        mvwprintw(win, 2, 2, "Player 1 lost!");
+    else if (loser_ == 2)
+        mvwprintw(win, 2, 2, "Player 2 lost!");
+
+    mvwprintw(win, 3, 2, "Player 1 Score: %d", score_);
+    mvwprintw(win, 4, 2, "Player 2 Score: %d", score2_);
     mvwprintw(w, 2, 2, "Enter your name (alnum, max 16). Press Enter to save:");
     mvwprintw(w, 4, 2, "> ");
     wrefresh(w);
@@ -421,8 +536,11 @@ void GameBoard::show_game_over_screen(const string& name) {
             delwin(win);
             running_ = true;
             score_ = 0;
+            score2_ = 0;
+            loser_ = 0;
             snake_.reset(play_rows_ / 2, play_cols_ / 2);
-            food_.spawn(play_rows_, play_cols_, snake_);
+            snake2_.reset(play_rows_ / 2, (play_cols_ * 3) / 4);
+            food_.spawn(rows_, cols_, snake_, snake2_);
             play_game();
             return;
         } else if (ch == 'm' || ch == 'M') { delwin(win); return; }

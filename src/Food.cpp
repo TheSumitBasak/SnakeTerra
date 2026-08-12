@@ -11,13 +11,14 @@ Food::Food() : pos_{-1, -1} {}
 
 Point Food::pos() const { return pos_; }
 
-void Food::spawn(int rows, int cols, const Snake& snake) {
+void Food::spawn(int rows, int cols, const Snake& snake1, const Snake& snake2) {
     vector<Point> empties;
     empties.reserve(rows * cols);
     for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
             Point p{r, c};
-            if (!snake.occupies(p)) empties.push_back(p);
+            if (!snake1.occupies(p) && !snake2.occupies(p))
+                empties.push_back(p);
         }
     }
     if (empties.empty()) {
