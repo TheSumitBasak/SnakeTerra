@@ -14,7 +14,7 @@ namespace snaketerra {
 GameBoard::GameBoard(int rows, int cols)
     : rows_(rows),
       cols_(cols),
-      snake_(),
+      snakes_(1),
       food_(),
       score_(0),
       running_(false),
@@ -25,7 +25,7 @@ GameBoard::GameBoard(int rows, int cols)
       play_cols_(cols)
 {
     srand((unsigned)time(nullptr));
-    food_.spawn(rows_, cols_, snake_);
+    food_.spawn(rows_, cols_, snakes_);
 }
 
 GameBoard::~GameBoard() = default;
@@ -263,8 +263,8 @@ void GameBoard::play_game() {
     play_cols_ = cols_;
     play_rows_ = rows_;
 
-    snake_.reset(play_rows_ / 2, play_cols_ / 2);
-    food_.spawn(play_rows_, play_cols_, snake_);
+    snakes_[0].reset(play_rows_ / 2, play_cols_ / 2);
+    food_.spawn(play_rows_, play_cols_, snakes_);
     running_ = true;
 
     auto last_tick = chrono::steady_clock::now();
@@ -294,16 +294,18 @@ void GameBoard::play_game() {
             wattroff(left_win, COLOR_PAIR(2));
         }
 
-        for (const auto& seg : snake_.body()) {
-            if (seg.r < 0 || seg.r >= play_rows_) continue;
-            if (seg.c < 0 || seg.c >= play_cols_) continue;
-            wattron(left_win, COLOR_PAIR(1));
-            if (used_cell_w == 1) {
-                mvwaddch(left_win, 1 + seg.r, 1 + seg.c * used_cell_w, ' ' | A_REVERSE);
-            } else {
-                mvwaddstr(left_win, 1 + seg.r, 1 + seg.c * used_cell_w, "  ");
+        for (const auto& snake : snakes_) {
+            for (const auto& seg : snake.body()) {
+                if (seg.r < 0 || seg.r >= play_rows_) continue;
+                if (seg.c < 0 || seg.c >= play_cols_) continue;
+                wattron(left_win, COLOR_PAIR(1));
+                if (used_cell_w == 1) {
+                    mvwaddch(left_win, 1 + seg.r, 1 + seg.c * used_cell_w, ' ' | A_REVERSE);
+                } else {
+                    mvwaddstr(left_win, 1 + seg.r, 1 + seg.c * used_cell_w, "  ");
+                }
+                wattroff(left_win, COLOR_PAIR(1));
             }
-            wattroff(left_win, COLOR_PAIR(1));
         }
         wrefresh(left_win);
 
@@ -317,7 +319,7 @@ void GameBoard::play_game() {
         wattron(right_score, COLOR_PAIR(4));
         mvwprintw(right_score, 1, 2, "Score: %d", score_);
         mvwprintw(right_score, 2, 2, "Difficulty: %s", difficulty_str().c_str());
-        mvwprintw(right_score, 3, 2, "Length: %zu", snake_.body().size());
+        mvwprintw(right_score, 3, 2, "Length: %zu", snakes_[0].body().size());
         wattroff(right_score, COLOR_PAIR(4));
         wrefresh(right_score);
 
@@ -351,23 +353,23 @@ void GameBoard::play_game() {
 }
 
 void GameBoard::step() {
-    snake_.move();
-    Point h = snake_.head();
+    snakes_[0].move();
+    Point h = snakes_[0].head();
     if (h.r < 0 || h.r >= play_rows_ || h.c < 0 || h.c >= play_cols_) { running_ = false; return; }
-    if (snake_.collides_with_self()) { running_ = false; return; }
+    if (snakes_[0].collides_with_self()) { running_ = false; return; }
     if (h == food_.pos()) {
         score_ += 1;
-        snake_.grow();
-        food_.spawn(play_rows_, play_cols_, snake_);
+        snakes_[0].grow();
+        food_.spawn(play_rows_, play_cols_, snakes_);
     }
 }
 
 void GameBoard::handle_input(int ch) {
     switch (ch) {
-        case KEY_UP: case 'w': case 'W': snake_.set_dir(Dir::UP); break;
-        case KEY_DOWN: case 's': case 'S': snake_.set_dir(Dir::DOWN); break;
-        case KEY_LEFT: case 'a': case 'A': snake_.set_dir(Dir::LEFT); break;
-        case KEY_RIGHT: case 'd': case 'D': snake_.set_dir(Dir::RIGHT); break;
+        case KEY_UP: case 'w': case 'W': snakes_[0].set_dir(Dir::UP); break;
+        case KEY_DOWN: case 's': case 'S': snakes_[0].set_dir(Dir::DOWN); break;
+        case KEY_LEFT: case 'a': case 'A': snakes_[0].set_dir(Dir::LEFT); break;
+        case KEY_RIGHT: case 'd': case 'D': snakes_[0].set_dir(Dir::RIGHT); break;
         case 'p': case 'P': {
             nodelay(stdscr, FALSE);
             mvprintw(0, 2, "PAUSED - press any key to continue");
@@ -421,8 +423,8 @@ void GameBoard::show_game_over_screen(const string& name) {
             delwin(win);
             running_ = true;
             score_ = 0;
-            snake_.reset(play_rows_ / 2, play_cols_ / 2);
-            food_.spawn(play_rows_, play_cols_, snake_);
+            snakes_[0].reset(play_rows_ / 2, play_cols_ / 2);
+            food_.spawn(play_rows_, play_cols_, snakes_);
             play_game();
             return;
         } else if (ch == 'm' || ch == 'M') { delwin(win); return; }

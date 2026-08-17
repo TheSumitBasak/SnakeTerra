@@ -6,6 +6,7 @@
 #include "Food.h"
 #include "Leaderboard.h"
 #include <string>
+#include <vector>
 
 // forward-declare ncurses internal window struct type
 struct _win_st;
@@ -52,7 +53,7 @@ private:
 private:
     int rows_;
     int cols_;
-    Snake snake_;
+    vector<Snake> snakes_;
     Food food_;
     int score_;
     bool running_;
