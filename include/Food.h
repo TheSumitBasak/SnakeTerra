@@ -2,6 +2,7 @@
 #define SNAKE_TERRA_FOOD_H
 
 #include "Point.h"
+#include <vector>
 
 using namespace std;
 
@@ -13,7 +14,7 @@ class Food {
 public:
     Food();
     Point pos() const;
-    void spawn(int rows, int cols, const Snake& snake);
+    void spawn(int rows, int cols, const vector<Snake>& snakes);
 
 private:
     Point pos_;
