@@ -2,7 +2,7 @@
 
 > Copy this file to `lab2_3/REPORT.md` in your fork and fill it in. Keep the eight
 > headings exactly as they are — they are the marking scheme, in order. Delete this
-> quote block and every `___` when you are done.
+> quote block and every `` when you are done.
 
 ---
 
@@ -12,12 +12,12 @@
 |---|---|
 | Agent used for run 2 | Gemini 3.6  (Claude Code / Codex CLI / Gemini CLI / other — name it) |
 | `ubiquitous-language` install route | manually installed from the course repository (`~/.claude/skills` / project `.claude/skills` / pasted `SKILL.md` / other) |
-| `refactoring/` pack install route | ___ |
+| `refactoring/` pack install route | manually installed |
 
 If anything would not install, say what failed here. The paste fallback is a documented
 route and costs no marks.
 
-___
+Both skills were installed manually and no installation errors occurred.
 
 ---
 
@@ -26,7 +26,7 @@ ___
 The generated file is at `lab2_3/UBIQUITOUS_LANGUAGE.md`. Three or four lines here on what
 you corrected and why: terms it invented, definitions it got wrong, ambiguities it missed.
 
-I simplified several definitions to make the terminology easier to understand and more consistent with the SnakeTerra project. I changed terms such as `Point` to the domain term **Cell** and `Dir` to **Direction**, while keeping the original code names as references. I also clarified the ambiguity between **Grid** and `GameBoard**, since `GameBoard` handles both the playing area and other game functions. I removed or corrected terms that were too generic or not clearly supported by the code.
+I simplified several definitions to make the terminology easier to understand and more consistent with the SnakeTerra project. I changed terms such as `Point` to the domain term **Cell** and `Dir` to **Direction**, while keeping the original code names as references. I also clarified the ambiguity between **Grid** and **GameBoard**, since `GameBoard` handles both the playing area and other game functions. I removed or corrected terms that were too generic or not clearly supported by the code.
 
 ---
 
@@ -98,8 +98,6 @@ expensive before, what does it cost now.
 
 
 Commit 3 did not completely remove any of the named smells from the smell report. The main change was reducing the repeated single-snake assumption by storing snakes in `std::vector<Snake>`. Before the refactor, adding another snake required changing several places that assumed there was only one snake. After the refactor, the snakes are kept in one container and `Food::spawn()` can work with the collection. So the refactor reduced the cost of extending the game, but the audit still reports the same smells such as Large Class and Long Method.
-
-___
 
 **Q2. Compare commit 4 to your Lab-1 diff.** Same feature, same codebase. What changed in
 the cost and what did not? If it got worse, say so and explain — that marks the same.
