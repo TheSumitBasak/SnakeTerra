@@ -27,6 +27,15 @@ public:
     // Entry point
     void run();
 
+    // Test seam: reset the round state, drive one simulation step and observe board
+    // state without ncurses, and substitute the Food collaborator.
+    void start_round();
+    void set_food(Food* food);
+    void step();
+    int score() const;
+    bool running() const;
+    const Snake& snake() const;
+
 private:
     // UI helpers
     int show_main_menu();
@@ -38,7 +47,6 @@ private:
 
     // game
     void play_game();
-    void step();
     void handle_input(int ch);
 
     // game-over & prompts
@@ -54,6 +62,7 @@ private:
     int cols_;
     Snake snake_;
     Food food_;
+    Food* food_ptr_;
     int score_;
     bool running_;
     int cell_w_;

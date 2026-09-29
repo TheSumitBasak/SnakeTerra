@@ -12,8 +12,11 @@ class Snake; // forward
 class Food {
 public:
     Food();
-    Point pos() const;
-    void spawn(int rows, int cols, const Snake& snake);
+    virtual ~Food() = default;
+
+    // Virtual so a test can substitute a collaborator (object seam).
+    virtual Point pos() const;
+    virtual void spawn(int rows, int cols, const Snake& snake);
 
 private:
     Point pos_;

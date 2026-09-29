@@ -16,6 +16,7 @@ GameBoard::GameBoard(int rows, int cols)
       cols_(cols),
       snake_(),
       food_(),
+      food_ptr_(&food_),
       score_(0),
       running_(false),
       cell_w_(2), // keep cell width fixed
@@ -25,7 +26,7 @@ GameBoard::GameBoard(int rows, int cols)
       play_cols_(cols)
 {
     srand((unsigned)time(nullptr));
-    food_.spawn(rows_, cols_, snake_);
+    food_ptr_->spawn(rows_, cols_, snake_);
 }
 
 GameBoard::~GameBoard() = default;
@@ -246,8 +247,6 @@ void GameBoard::play_game() {
         return;
     }
 
-    score_ = 0;
-
     const int top = 2;
     const int left = 2;
     const int right_box_x = left + left_box_w + 2;
@@ -263,9 +262,7 @@ void GameBoard::play_game() {
     play_cols_ = cols_;
     play_rows_ = rows_;
 
-    snake_.reset(play_rows_ / 2, play_cols_ / 2);
-    food_.spawn(play_rows_, play_cols_, snake_);
-    running_ = true;
+    start_round();
 
     auto last_tick = chrono::steady_clock::now();
     int delay_ms = static_cast<int>(difficulty_);
@@ -287,7 +284,7 @@ void GameBoard::play_game() {
         box(left_win, 0, 0);
         mvwprintw(left_win, 0, 2, " Game ");
 
-        Point f = food_.pos();
+        Point f = food_ptr_->pos();
         if (f.r >= 0 && f.c >= 0 && f.r < play_rows_ && f.c < play_cols_) {
             wattron(left_win, COLOR_PAIR(2));
             mvwprintw(left_win, 1 + f.r, 1 + f.c * used_cell_w, "%s", "<>");
@@ -350,15 +347,30 @@ void GameBoard::play_game() {
     show_game_over_screen(name);
 }
 
+void GameBoard::start_round() {
+    score_ = 0;
+    snake_.reset(play_rows_ / 2, play_cols_ / 2);
+    food_ptr_->spawn(play_rows_, play_cols_, snake_);
+    running_ = true;
+}
+
+void GameBoard::set_food(Food* food) { food_ptr_ = food ? food : &food_; }
+
+int GameBoard::score() const { return score_; }
+
+bool GameBoard::running() const { return running_; }
+
+const Snake& GameBoard::snake() const { return snake_; }
+
 void GameBoard::step() {
     snake_.move();
     Point h = snake_.head();
     if (h.r < 0 || h.r >= play_rows_ || h.c < 0 || h.c >= play_cols_) { running_ = false; return; }
     if (snake_.collides_with_self()) { running_ = false; return; }
-    if (h == food_.pos()) {
+    if (h == food_ptr_->pos()) {
         score_ += 1;
         snake_.grow();
-        food_.spawn(play_rows_, play_cols_, snake_);
+            food_ptr_->spawn(play_rows_, play_cols_, snake_);
     }
 }
 
@@ -419,10 +431,6 @@ void GameBoard::show_game_over_screen(const string& name) {
         int ch = wgetch(win);
         if (ch == 'r' || ch == 'R') {
             delwin(win);
-            running_ = true;
-            score_ = 0;
-            snake_.reset(play_rows_ / 2, play_cols_ / 2);
-            food_.spawn(play_rows_, play_cols_, snake_);
             play_game();
             return;
         } else if (ch == 'm' || ch == 'M') { delwin(win); return; }
