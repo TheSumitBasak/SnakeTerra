@@ -40,3 +40,11 @@ leaderboard.txt
 
 # debug information files
 *.dwo
+
+# Lab 4 test artefacts
+tests/base_tests
+tests/seam_tests
+*.gcda
+*.gcno
+*.gcov
+tests/lab4_*.txt
